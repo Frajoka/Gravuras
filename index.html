@@ -10,20 +10,87 @@
 			}
 			#settings_button{
 				position:absolute;
-				top:0px;
-				left:89%;
-				transform:scale(.18);
+				top:5%;
+				left:95%;
+				width:2%;
 			}
-			#settings_div{display:none;}
+			#inventario_button{
+				position:absolute;
+				top:12%;
+				left:5%;
+				width:8%;
+				opacity:.8;
+			}
+			#inventario{
+				display:none;
+				position:absolute;
+				top:2%;
+				left:25%;
+				flex-direction:row;
+				flex-wrap:wrap;
+				align-content:strech;
+				gap:2px;
+				border:2px solid;
+				width:50%;
+			}
+			#settings_div{
+				display:none;
+				width:30%;
+				position:absolute;
+				top:5%;
+				left:60%;
+				background-color:#ddd;
+			}
+			#settings_div label{
+				display:inline-block
+				width:30%;
+			}
+			.seta{
+				display:inline-block
+				width:50%;
+			}
+			#item_info_div{display:none;position:absolute;}
 		</style>
 		<title>Gravurass</title>
 	</head>
 	<body>
 		<canvas id='c'>Browser does not support HTML5Canvas</canvas>
 		
-		<img id="settings_button" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAZlBMVEUAAAD///99fX3p6el5eXns7Oyfn5/w8PB2dnb4+Pijo6P19fX7+/s6Ojo+Pj7a2towMDDCwsJsbGy4uLgdHR0lJSWrq6uZmZng4OCFhYXT09NERERRUVFXV1dgYGAQEBAXFxeOjo59ZL/1AAAE20lEQVR4nO1b4XqqMAwtMEBBRUAcoDJ9/5e8KFMhTWjKaNn33Z2fKs2xpGly0gpnGvLsIHooVvnEgcSkp7y9kLAL7REID7L9dhZiawRWmH0hXFsEEty+EKUlAgFF4GiJgEsRqCwRIFxAiI8/An8E5iXg1clmDgKbpPb0CWyiR7jNEuQ7chliobBu7t8cyBBBEPCa56DwybgMkJ2owz4o4X4QPb9rfB0C/uk96mCfrasdZb3Dqar7vz++vznjuyVKIBz8x9cchBG6C0IU0ctU1P98t+YS8MEcB49Pk4xjvcOqc53P4adoxoAQ8E5wvJZBSbo+QaGU7LdvAfEDmYAv2RciqvTM31FF8meIH0gEQtLH58BOypogAfj+Z2cA5wAQkN//3IB+MCSwvpi230akzQgByW9NIBohYMO++KIJ1FYIiIQkkNshkJIE0qUJlHYI+CQBR7HXzoPzyCqw8g7qEQI2AkHgjBFwkC1sXsAUT9oNycpzHkTQnpwP3Eza/5TMIRmRQT8IZGtYTkjm/T/FDTGGEAi3pgicEBXJ7iuQXBAj4LGS/2koGEmpMyEB5oOxCkL2YE2V16XnefXRbdS//oZUHU0NROdjv+TelBEzm5WqZInAF8t8DR9r0ykWhb2KAGc/LFI4SgdWQgWpQwKMCtRFq9w7YsbTUEWBhYl6BCScvqHeSOBKBATUs6iQY9VRDLw/QEC5npRysJJBNkZAWRrLgUSCaivbDl3oQaA8Vu4DKic6qe07a9WfyDpbblR+E4g/FE+8wWoI8OurVXwn4BfsB5hyPF9MKvyWAH/3LwipD6JkRdMHdo7QqAfZ/QgNPS0VGj/GZFsUGlX2SvCn64JL1wg0kjq+A+IpJQEzaS2xB2I4qkebAI3WLNlZ/BHYLtDGNhP2t3z7znppApvFCZioLQ4aPmBkBnSc0IgPiJHeG4QZuU0jEJlRPDWa8zqhmO+vZ7IegIj5XYfD0ttxZiQh0eiw5cLhN4nYKdmVPWSbkjke/+fMKeBPwCMpdUL+A0bS8hZJ4PIKk7PKeIuNKh+TCpMe5ijNVAXybqxrNkNxqpR4RovTn5fnarV9vDxnCBSjDNQSl0Kg4BQ1FS3RMPYAhUTDEqn2xL6YcqoMlUjlXBmDiAaT6Vh9ZymxkwgwezaXfJCfeDmz7a0WKtlS7TW75aUfx36SVxm7wpTyut8nVi8v15vsWrEaFsu3bMw1rbB84hf2jIy2j2UGUwPRVCgDkRlxpQd4Ch8QMNy6RhgscIAhGSFg/CDXHQ1NwNIhlpgksPg5osUJWDrIRB/lMqMtSRhZBUbPjzwRjBAILazDC9I1e6M0lgs8cQJiG9wLTCZkd2yhyCHthhpNtCn2paQQSUqRtxDwW4svuEhiwTnYjPlBm0wn/FMaDzQJsqbOiNiK5YTQD7pkvtag8F26AQby/BMEHG9Q6LzSqJIXJr4+X390kF5s0ctw+AWHsifVDJKo1FWIOHt3EOl7CZ7OBYeWwSsiwQMTYXIj10lR1dDKyxMvhNhOXXIJuxJxh0kB5JLALrmk3TnVT0rVoK/5xGme47qg5jWfMk0ROUFNgMZ/c9Pqj8DvJaB118wEAbJ+Q6pvIwQWv/ZL6bmrKWNNIuBfMfsWr37jl9+ZLa1ZCNyv/w9m4bDSaOwO8A9Y4D66Z1COLQAAAABJRU5ErkJggg==">
-		<div id="settings_div"></div>
+		<img id="settings_button" onclick="showSettings()" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAZlBMVEUAAAD///99fX3p6el5eXns7Oyfn5/w8PB2dnb4+Pijo6P19fX7+/s6Ojo+Pj7a2towMDDCwsJsbGy4uLgdHR0lJSWrq6uZmZng4OCFhYXT09NERERRUVFXV1dgYGAQEBAXFxeOjo59ZL/1AAAE20lEQVR4nO1b4XqqMAwtMEBBRUAcoDJ9/5e8KFMhTWjKaNn33Z2fKs2xpGly0gpnGvLsIHooVvnEgcSkp7y9kLAL7REID7L9dhZiawRWmH0hXFsEEty+EKUlAgFF4GiJgEsRqCwRIFxAiI8/An8E5iXg1clmDgKbpPb0CWyiR7jNEuQ7chliobBu7t8cyBBBEPCa56DwybgMkJ2owz4o4X4QPb9rfB0C/uk96mCfrasdZb3Dqar7vz++vznjuyVKIBz8x9cchBG6C0IU0ctU1P98t+YS8MEcB49Pk4xjvcOqc53P4adoxoAQ8E5wvJZBSbo+QaGU7LdvAfEDmYAv2RciqvTM31FF8meIH0gEQtLH58BOypogAfj+Z2cA5wAQkN//3IB+MCSwvpi230akzQgByW9NIBohYMO++KIJ1FYIiIQkkNshkJIE0qUJlHYI+CQBR7HXzoPzyCqw8g7qEQI2AkHgjBFwkC1sXsAUT9oNycpzHkTQnpwP3Eza/5TMIRmRQT8IZGtYTkjm/T/FDTGGEAi3pgicEBXJ7iuQXBAj4LGS/2koGEmpMyEB5oOxCkL2YE2V16XnefXRbdS//oZUHU0NROdjv+TelBEzm5WqZInAF8t8DR9r0ykWhb2KAGc/LFI4SgdWQgWpQwKMCtRFq9w7YsbTUEWBhYl6BCScvqHeSOBKBATUs6iQY9VRDLw/QEC5npRysJJBNkZAWRrLgUSCaivbDl3oQaA8Vu4DKic6qe07a9WfyDpbblR+E4g/FE+8wWoI8OurVXwn4BfsB5hyPF9MKvyWAH/3LwipD6JkRdMHdo7QqAfZ/QgNPS0VGj/GZFsUGlX2SvCn64JL1wg0kjq+A+IpJQEzaS2xB2I4qkebAI3WLNlZ/BHYLtDGNhP2t3z7znppApvFCZioLQ4aPmBkBnSc0IgPiJHeG4QZuU0jEJlRPDWa8zqhmO+vZ7IegIj5XYfD0ttxZiQh0eiw5cLhN4nYKdmVPWSbkjke/+fMKeBPwCMpdUL+A0bS8hZJ4PIKk7PKeIuNKh+TCpMe5ijNVAXybqxrNkNxqpR4RovTn5fnarV9vDxnCBSjDNQSl0Kg4BQ1FS3RMPYAhUTDEqn2xL6YcqoMlUjlXBmDiAaT6Vh9ZymxkwgwezaXfJCfeDmz7a0WKtlS7TW75aUfx36SVxm7wpTyut8nVi8v15vsWrEaFsu3bMw1rbB84hf2jIy2j2UGUwPRVCgDkRlxpQd4Ch8QMNy6RhgscIAhGSFg/CDXHQ1NwNIhlpgksPg5osUJWDrIRB/lMqMtSRhZBUbPjzwRjBAILazDC9I1e6M0lgs8cQJiG9wLTCZkd2yhyCHthhpNtCn2paQQSUqRtxDwW4svuEhiwTnYjPlBm0wn/FMaDzQJsqbOiNiK5YTQD7pkvtag8F26AQby/BMEHG9Q6LzSqJIXJr4+X390kF5s0ctw+AWHsifVDJKo1FWIOHt3EOl7CZ7OBYeWwSsiwQMTYXIj10lR1dDKyxMvhNhOXXIJuxJxh0kB5JLALrmk3TnVT0rVoK/5xGme47qg5jWfMk0ROUFNgMZ/c9Pqj8DvJaB118wEAbJ+Q6pvIwQWv/ZL6bmrKWNNIuBfMfsWr37jl9+ZLa1ZCNyv/w9m4bDSaOwO8A9Y4D66Z1COLQAAAABJRU5ErkJggg==">
+		<div id="settings_div">
+			<label>Volume Geral</label>
+			<input onchange="changeVolume()" type="range" max=1 min=0 step='0.01'/>
+			<br>
+			<label>Musica</label>
+			<input onchange="changeVolume()" type="range" max=1 min=0 step='0.01'/>
+			<br>
+			<label class="seta">&uarr;</label>
+			<button></button>
+			<button></button>
+			<br>
+			<label class="seta">&rarr;</label>
+			<button></button>
+			<button></button>
+			<br>
+			<label class="seta">&darr;</label>
+			<button></button>
+			<button></button>
+			<br>
+			<label class="seta">&larr;</label>
+			<button></button>
+			<button></button>
+		</div>
 		
+		<img id="inventario_button" onclick="player.showInventario()" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGugFUEmatQvS49M1tKPpI0PT7HVWebZigysd8QHeSGX-cGevpgr21I2dydA&s">
+		<div id="inventario_div">
+			<div id="inventario"></div>
+			<div id="item_info_div">
+				<p id="item_info">info</p>
+			</div>
+		</div>
+		
+		<script src="Scripts/configs.js"></script>
+		<script src="Scripts/mapa.js"></script>
 		<script src="Scripts/player.js"></script>
 		<script src="Scripts/main.js"></script>
 	</body>
