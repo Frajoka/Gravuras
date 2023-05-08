@@ -9,43 +9,172 @@
 				margin:0px;
 				padding:0px;
 			}
-			#inventario_button{
+			h3{
+				margin-top:3%;
+				font-family:'Lucida Console';
+				text-align:center;
+			}
+			span{
+				display:inline-block;
+			}
+			#info_button{
+				display:inline-block;
 				position:absolute;
 				left:0px;
 				top:0px;
+				border-radius:50%;
+				width:3vw;
+				height:3vw;
+				min-width:30px;
+				min-height:30px;
+				max-width:50px;
+				max-height:50px;
+				border: 1px solid #000;
+				cursor:pointer;
 			}
-			#inventario_div{
+			#info{
 				display:none;
 				position:absolute;
-				opacity:0.8;
-				background-color:gray;
+				top:0px;
+				left:0px;
+				opacity:0.9;
+				background-color:#ddd;
 				border:3px solid #000;
 				border-radius:3px;
 				width:50%;
 			}
-			#inventario_div h3{
+			#info p{
+				display:inline-block;
+			}
+			#info div p{
+				width:30%;
+			}
+			.bar-container{
+				width:40%;
+				border:2px solid #000;
+			}
+			#inventario_button{
+				display:inline-block;
+				margin-top:20px;
+				position:absolute;
+				left:0px;
+				top:20px;
+				border-radius:20%;
+				width:3vw;
+				height:3vw;
+				border: 1px solid #000;
+				cursor:pointer;
+				min-width:30px;
+				min-height:30px;
+				max-width:50px;
+				max-height:50px;
+			}
+			#inventario_div{
+				display:none;
+				position:absolute;
+				opacity:0.9;
+				background-color:#ddd;
+				border:3px solid #000;
+				border-radius:3px;
+				width:50%;
+			}
+			#close{
 				font-size:200%;
-				text-align:center;
+				font-weight:bold;
+				cursor:pointer;
+				margin-left:94%;
+				color:white;
 			}
 			#inventario{
-				width:90%;
+				width:50%;
 				margin-top:10%;
-				margin-left:6%;
-				margin-bottom:5%;
+				margin-bottom:10%;
+			}
+			#armadura_div{
+				display:inline-block;
+				width:13%;
+				margin-left:5%;
+				margin-right:5%;
+			}
+			#inventario_items{
+				display:inline-block;
+				width:55%;
+				transform:translateY(-20%);
+			}
+			#arma_div{
+				display:inline-block;
+				width:10%;
+				margin-left:0%;
+				margin-right:5%;
+			}
+			.item-div{
+				background-color:#aaa;
+				border-top:3px solid #999;
+				border-bottom:3px solid #eee;
+				border-left:3px solid #bbb;
+				border-right:3px solid #bbb;
 			}
 		</style>
 		<title>Gravurass</title>
 	</head>
 	<body>
 		<canvas id='c'>Browser does not support HTML5Canvas</canvas>
+		<button onclick="showInfo()" id="info_button">i</button>
 		
-		<button onclick="showInventario()" id="inventario_button">Inventario</button>
-		<div id="inventario_div">
-			<h3>Inventario</h3>
-			<div id="inventario">
-				
+		<button onclick="showInventario()" id="inventario_button"><img style="width:90%;" src="inventory_png.png"></button>
+		<div id="info">
+			<h3 id="name">Nome</h3>
+			<p id="hp">Vida</p>
+			<br>
+			<p id="vel">Velocidade</p>
+			<br>
+			<span>
+				<p>Ataque</p>
+				<p id='atk'></p>
+			</span>
+			<span>
+				<p>Defesa</p>
+				<p id='def'></p>
+			</span>
+			<div>
+				<p>For&ccedil;a</p>
+				<span class="bar-container">
+					<span id='bar'>
+					</span>
+				</span>
+			</div>
+			<div>
+				<p>Agilidade</p>
+				<span class="bar-container">
+					<span id='bar'>
+					</span>
+				</span>
+			</div>
+			<div>
+				<p>Vitalidade</p>
+				<span class="bar-container">
+					<span id='bar'>
+					</span>
+				</span>
+			</div>
+			<div>
+				<p>Intelecto</p>
+				<span class="bar-container">
+					<span id='bar'>
+					</span>
+				</span>
 			</div>
 		</div>
+		<div id="inventario_div">
+			<span id="close" onclick="showInventario()">&times;</span>
+			<h3>Inventario</h3>
+			<div id="inventario">
+				<div id="armadura_div"></div>
+				<div id="inventario_items"></div>
+				<div id="arma_div"></div>
+			</div>
+		</div>
+		
 		
 		<script src="Scripts/configs.js"></script>
 		<script src="Scripts/player.js"></script>
