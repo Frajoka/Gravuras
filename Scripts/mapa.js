@@ -1,7 +1,7 @@
 var Mapa=[]
 
-var tamanhoX=10
-var tamanhoY=10
+var tamanhoX=20
+var tamanhoY=20
 
 var grama=new Block('',0,0,1,false)
 
@@ -19,6 +19,10 @@ function createMap(){
 			if(j>=1 && i>=1 &&
 			j<tamanhoX-1 && i<tamanhoY-1 && Math.random()*100<30){
 				Mapa.push(new Block('',j,i,1,false,pegaGraveto))
+			}
+			else if(j>=1 && i>=1 &&
+			j<tamanhoX-1 && i<tamanhoY-1 && Math.random()*100<15){
+				Mapa.push(new Block('',j,i,1,false,pegaPlanta,'https://static.wikia.nocookie.net/minecraft/images/5/5f/Tall_grassZ.gif/revision/latest?cb=20190329133252'))
 			}
 		}
 	}

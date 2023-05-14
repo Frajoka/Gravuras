@@ -11,13 +11,15 @@ var $info=document.querySelector("#info")
 var inventario=[]
 var armaduras=['','','','']
 var arma=escudo=''
+var XP=0
 var inventario_size=3
 var gridSize=10
+
+var Scale=6
 
 for(var i=0;i<inventario_size*inventario_size;i++){
 	inventario.push('')
 }
-
 
 c.fillText("Carrregando...",w/2,h/2)
 
@@ -28,13 +30,28 @@ var dragging=null
 var offSetDragX=0
 var offSetDragY=0
 
+var isInfo=false
+var infoItemText=['','']
+var isAlerta=[]
+var alertaText=[]
+var alertaColor=[]
+
 var FPS=60
 
 //Onde Estao as Entidades
 var Scene=[]
 var Janelas=[]
 
-var player=new Entity('FraJoKaDev',5,5)
+var player=new Entity('FraJoKaDev',5,5,[Math.round(Math.random()*3),Math.round(Math.random()*3),Math.round(Math.random()*3),Math.round(Math.random()*3)])
+
+var enemy=new Entity('inimigo',Math.random()*tamanhoX,Math.random()*tamanhoY,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
+Scene.push(enemy)
+var enemy=new Entity('inimigo',Math.random()*tamanhoX,Math.random()*tamanhoY,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
+Scene.push(enemy)
+var enemy=new Entity('inimigo',Math.random()*tamanhoX,Math.random()*tamanhoY,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
+Scene.push(enemy)
+
+
 Scene.push(player)
 
 var MaxVida=player.vida
@@ -69,12 +86,16 @@ var camera={
 			size=Scene[i].size*gridSize*Scale
 			
 			if(x+size>=0 && y+size>=0 && x<=w && y<=h){
+				c.font="bold 15px monospace"
+				c.fillText(Scene[i].vida,x+size/3,y-5)
 				c.drawImage(Scene[i].img,x,y,size,size)
+				if(Scene[i]!=player && Scene[i].vida>0){
+					enemyAI(Scene[i])
+				}
 			}
 		}
 	}
 }
-var Scale=6
 
 //Eventos
 document.addEventListener('keydown',(e)=>{
@@ -109,7 +130,15 @@ document.addEventListener('keydown',(e)=>{
 			break
 		case Configs['left2']:
 			keys[3]=1
-			
+			break
+		case Configs['inventario']:
+			showInventario()
+			break
+		case Configs['status']:
+			showInfo()
+			break
+		case Configs['settings']:
+			showSettings()
 			break
 		
 	}
@@ -159,23 +188,31 @@ document.addEventListener('mousedown',(e)=>{
 			if(e.target.parentNode.parentNode == $inventario_items){
 				dragging=inventario[e.target.dataset.index]
 				inventario[e.target.dataset.index]=''
+				offSetDragX=0
+				offSetDragY=e.target.dataset.index
 			}
 			else if(e.target.parentNode.parentNode == $armadura_div){
 				dragging=armaduras[e.target.dataset.index]
 				armaduras[e.target.dataset.index]=''
+				offSetDragX=1
+				offSetDragY=e.target.dataset.index
 			}
 			else if(e.target.parentNode.parentNode == $arma_div){
 				if(e.target.dataset.index==0){
 					dragging=arma
 					arma=''
+					offSetDragX=2
 				}
 				else if(e.target.dataset.index==1){
 					dragging=escudo
 					escudo=''
+					offSetDragX=3
 				}
+				offSetDragY=e.target.dataset.index
 				
 			}
-			createInventario()
+			reloadInfo()
+			reloadInventario()
 		}
 	}
 },false)
@@ -185,27 +222,73 @@ document.addEventListener('mouseup',(e)=>{
 			if(e.target.parentNode.parentNode == $inventario_items){
 				if(inventario[e.target.dataset.index]!=''){
 					var item=craft(inventario[e.target.dataset.index],dragging)
-					console.log(item)
-					if(item!=null){inventario[e.target.dataset.index]=item}
-					else{return}
+					if(item!=null){
+						inventario[e.target.dataset.index]=item
+						alerta("+1 "+item.nome)
+					}
+					else{
+						returnItem()
+					}
 				}
 				else{
 					inventario[e.target.dataset.index]=dragging
 				}
 			}
 			else if(e.target.parentNode.parentNode == $armadura_div){
-				armaduras[e.target.dataset.index]=dragging
+				if(armaduras[e.target.dataset.index]==''){
+					armaduras[e.target.dataset.index]=dragging
+				}
+				else{
+					returnItem()
+				}
 			}
 			else if(e.target.parentNode.parentNode == $arma_div){
 				if(e.target.dataset.index==0){
-					arma=dragging
+					if(arma==''){
+						arma=dragging
+					}
+					else{
+						returnItem()
+					}
 				}
 				else if(e.target.dataset.index==1){
-					escudo=dragging
+					if(escudo==''){
+						escudo=dragging
+					}
+					else{
+						returnItem()
+					}
 				}
 			}
 			buffaPlayer()
-			createInventario()
+			reloadInfo()
+			reloadInventario()
+		}
+		if(e.target==document.querySelector("#c")){
+			for(var i=Mapa.length-1;i>=0;i--){
+				var x,y,size
+				x=Mapa[i].x*gridSize-(camera.x-camera.fov[0])
+				y=Mapa[i].y*gridSize-(camera.y-camera.fov[1])
+				
+				x*=Scale
+				y*=Scale
+				
+				size=Mapa[i].size*gridSize*Scale
+				
+				if(e.clientX >= x &&
+				e.clientX<= x+size &&
+				e.clientY >= y &&
+				e.clientY<= y+size){
+					if(dragging.nome.split(' ')[0]=='parede'){
+						var temp=new Block(dragging.nome,Mapa[i].x,Mapa[i].y,1,true,pegaItemDuro,dragging.img.src)
+					}
+					else{
+						var temp=new Block(dragging.nome,Mapa[i].x+.25,Mapa[i].y+.25,0.5,false,pegaItem,dragging.img.src)
+					}
+					alerta("-1 "+dragging.nome,"rgba(255,0,0")
+					Mapa.splice(i+1,0,temp)
+				}
+			}
 		}
 		isDragging=false
 		dragging=null
@@ -221,7 +304,34 @@ document.addEventListener('mousemove',(e)=>{
 	}
 },false)
 document.querySelector("#c").addEventListener('click',(e)=>{
-	for(var i=0;i<Mapa.length;i++){
+	for(var i=0;i<Scene.length;i++){
+		if(Scene[i]!=player){
+			var x,y,size
+			x=Scene[i].x*gridSize-(camera.x-camera.fov[0])
+			y=Scene[i].y*gridSize-(camera.y-camera.fov[1])
+			
+			x*=Scale
+			y*=Scale
+			
+			size=Scene[i].size*gridSize*Scale
+			
+			if(e.clientX >= x &&
+			e.clientX<= x+size &&
+			e.clientY >= y &&
+			e.clientY<= y+size &&
+			Scene[i].vida>0){
+				if(Math.sqrt(Math.pow(player.x-Scene[i].x,2)+Math.pow(player.y-Scene[i].y,2))<player.range){
+					damage(player,Scene[i])
+					
+				}
+				else{
+					console.log("Muito Longe para atacar")
+				}
+				return
+			}
+		}
+	}
+	for(var i=Mapa.length;i>=0;i--){
 		if(Mapa[i] instanceof Block){
 			var x,y,size
 			x=Mapa[i].x*gridSize-(camera.x-camera.fov[0])
@@ -237,7 +347,7 @@ document.querySelector("#c").addEventListener('click',(e)=>{
 			e.clientY >= y &&
 			e.clientY<= y+size &&
 			Mapa[i].funcao!=null){
-				if(Math.sqrt(Math.pow(player.x-Mapa[i].x,2)+Math.pow(player.y-Mapa[i].y,2))<gridSize/Scale){
+				if(Math.sqrt(Math.pow(player.x-Mapa[i].x,2)+Math.pow(player.y-Mapa[i].y,2))<player.range){
 					Mapa[i].funcao()
 				}
 				else{
@@ -387,9 +497,14 @@ function createInventario(){
 	Janelas.push($inventario_div)
 	
 }
+function reloadInventario(){
+	createInventario()
+	Janelas.splice(Janelas.length-1,1)
+}
 function createInfo(){
 	var nome=document.querySelector('#name')
 	var vida=document.querySelector('#hp')
+	var xp=document.querySelector('#xp')
 	var velocidade=document.querySelector('#vel')
 	var ataque=document.querySelector('#atk')
 	var defesa=document.querySelector('#def')
@@ -404,11 +519,12 @@ function createInfo(){
 	player.velocidade=(10+player.stats[1]+player.stats[2]+player.buffs[1])/100
 	
 	player.atk=player.stats[0]+1+player.buffs[2]
-	player.def=0+player.buffs[3]
+	player.def=0+player.buffs[4]
 	
 	
 	nome.innerHTML=player.nome
 	vida.innerHTML='Vida:'+player.vida+'/'+MaxVida
+	xp.innerHTML='Level:'+Math.floor(XP/100)+' '+ XP +'xp' 
 	velocidade.innerHTML='Velocidade:'+player.velocidade
 	
 	ataque.innerHTML=player.atk
@@ -426,12 +542,50 @@ function createInfo(){
 	}
 	Janelas.push($info)
 }
+function reloadInfo(){
+	var nome=document.querySelector('#name')
+	var vida=document.querySelector('#hp')
+	var xp=document.querySelector('#xp')
+	var velocidade=document.querySelector('#vel')
+	var ataque=document.querySelector('#atk')
+	var defesa=document.querySelector('#def')
+	
+	var bars=document.querySelectorAll('#bar')
+	
+	nome.innerHTML=player.nome
+	vida.innerHTML='Vida:'+player.vida+'/'+MaxVida
+	xp.innerHTML='Level:'+Math.floor(XP/100)+' '+ XP +'xp' 
+	velocidade.innerHTML='Velocidade:'+player.velocidade
+	
+	ataque.innerHTML=player.atk
+	defesa.innerHTML=player.def
+	
+	bars[0].style.backgroundColor="red"
+	bars[1].style.backgroundColor="yellow"
+	bars[2].style.backgroundColor="lime"
+	bars[3].style.backgroundColor="blue"
+	
+	for(var i=0;i<bars.length;i++){
+		bars[i].innerHTML=player.stats[i]
+		bars[i].style.width=100/6*(player.stats[i]+1) + "%"
+		bars[i].style.minHeight="100%"
+	}
+}
+
 function showInfo(){
 	if($info.style.display=='none'){
 		$info.style.display='inline-block'
 	}
 	else{
 		$info.style.display='none'
+	}
+}
+function showSettings(){
+	if(document.querySelector("#settings_div").style.display=='none'){
+		document.querySelector("#settings_div").style.display='inline-block'
+	}
+	else{
+		document.querySelector("#settings_div").style.display='none'
 	}
 }
 function clear(){
@@ -469,14 +623,37 @@ function addInventario(obj){
 			obj.x=i%inventario_size
 			obj.y=Math.floor(i/(inventario_size+1))*Math.round(i/inventario_size)
 			inventario[i]=obj
-			createInventario()
-			return
+			reloadInventario()
+			alerta("+1 "+obj.nome)
+			return true
 		}
 	}
-	return obj
+	return false
+}
+function addXp(quanto,causa){
+	XP+=quanto
+	reloadInfo()
+	alerta("+"+quanto+"xp por "+causa,'rgba(0,255,0')
+}
+function returnItem(){
+	switch(offSetDragX){
+		case 0:
+			inventario[offSetDragY]=dragging
+			break;
+		case 1:
+			armaduras[offSetDragY]=dragging
+			break;
+		case 2:
+			arma=dragging
+			break;
+		case 3:
+			escudo=dragging
+			break;
+	}
 }
 function buffaPlayer(){
-	player.buffs=[0,0,0,0]
+	var temp=player.buffs
+	player.buffs=[0,0,0,0,0,0]
 	
 	for(var i=0;i<armaduras.length;i++){
 		if(armaduras[i] instanceof Item){
@@ -495,7 +672,25 @@ function buffaPlayer(){
 			player.buffs[j]+=escudo.buffs[j]
 		}
 	}
-	createInfo()
+	
+	if(player.buffs[0]>temp[0]){alerta("+1 de Vida")}
+	if(player.buffs[1]>temp[1]){alerta("+0.01 de Velocidade")}
+	if(player.buffs[2]>temp[2]){alerta("+1 de Ataque")}
+	if(player.buffs[3]>temp[3]){alerta("+1 de Alcance")}
+	if(player.buffs[4]>temp[4]){alerta("+1 de Defesa")}
+	if(player.buffs[5]>temp[5]){alerta("+1 de Mineracao")}
+	if(player.buffs[6]>temp[6]){alerta("+1 de Agricultura")}
+	
+	if(player.buffs[0]<temp[0]){alerta("-1 de Vida","rgba(255,0,0")}
+	if(player.buffs[1]<temp[1]){alerta("-0.01 de Velocidade","rgba(255,0,0")}
+	if(player.buffs[2]<temp[2]){alerta("-1 de Ataque","rgba(255,0,0")}
+	if(player.buffs[3]<temp[3]){alerta("-1 de Alcance","rgba(255,0,0")}
+	if(player.buffs[4]<temp[4]){alerta("-1 de Defesa","rgba(255,0,0")}
+	if(player.buffs[5]<temp[5]){alerta("-1 de Mineracao","rgba(255,0,0")}
+	if(player.buffs[6]<temp[6]){alerta("-1 de Agricultura","rgba(255,0,0")}
+	
+	
+	reloadInfo()
 }
 function destroy(obj){
 	for(var i=0;i<Mapa.length;i++){
@@ -505,17 +700,55 @@ function destroy(obj){
 		}
 	}
 }
-function reload(){
-	createInfo()
-	createInventario()
-
-	for(var i=0;i<Janelas.length;i++){
-		Janelas[i].style.width='30%'
-		Janelas[i].style.left='0px'
-		Janelas[i].style.top='0px'
+function damage(obj1,obj2){
+	if(Math.random()*5<=obj1.stats[0]-obj2.def && obj2.vida>0){
+		obj2.vida-=obj1.atk
+		if(obj2 == player){
+			alerta('-'+obj1.atk+' de vida '+obj2.nome,"rgba(255,0,0")
+			reloadInfo()
+		}
+		else{
+			alerta('-'+obj1.atk+' de vida '+obj2.nome)
+		}
+		if(obj2.vida<0){
+			obj2.vida=0
+		}
+		if(obj2.vida==0 && obj2!=player){
+			addXp(10,'Matar'+obj2.nome)
+		}
 	}
-	Janelas=[]
-
+	else if(obj1 == player){
+		alerta('miss',"rgba(255,0,0")
+	}
+}
+function enemyAI(enemy){
+	if(enemy.x<player.x && !collideMap(enemy.x+enemy.velocidade,enemy.y,enemy.size)){
+		enemy.x+=enemy.velocidade
+	}
+	if(enemy.y<player.y && !collideMap(enemy.x,enemy.y+enemy.velocidade,enemy.size)){
+		enemy.y+=enemy.velocidade
+	}
+	if(enemy.x>player.x && !collideMap(enemy.x-enemy.velocidade,enemy.y,enemy.size)){
+		enemy.x-=enemy.velocidade
+	}
+	if(enemy.y>player.y && !collideMap(enemy.x,enemy.y-enemy.velocidade,enemy.size)){
+		enemy.y-=enemy.velocidade
+	}
+	if(Math.sqrt(Math.pow(enemy.x-player.x,2)+Math.pow(enemy.y-player.y,2))<player.range && Date.now()%50==0){
+		damage(enemy,player)
+	}
+}
+function infoItem(nome,info){
+	infoItemText[0]=nome
+	infoItemText[1]=info
+	isInfo=true
+}
+function alerta(text,color="rgba(255,255,255"){
+	alertaText.push(text)
+	alertaColor.push(color)
+	isAlerta.push(1)
+}
+function reload(){
 	createInfo()
 	createInventario()
 }
@@ -523,13 +756,51 @@ function reload(){
 console.log('Carregando...')
 createMap()
 reload()
+for(var i=0;i<Janelas.length;i++){
+	Janelas[i].style.width='30%'
+	Janelas[i].style.left='0px'
+	Janelas[i].style.top='0px'
+}
+Janelas=[]
+
+createInfo()
+createInventario()
 console.log('Pronto!')
 
 //Loop Principal
 setInterval(()=>{
 	clear()
 	
-	movePlayer()
-	
+	if(player.vida>0){
+		movePlayer()
+	}
+	if(Math.floor(XP/100)==1){
+		var buttons=document.querySelectorAll('level_up_button')
+		for(var i=0;i<buttons.length;i++){
+			buttons[i].style.display='inline-block'
+		}
+	}
 	camera.render()
+	
+	if(isInfo){
+		c.fillStyle="rgba(55,55,55,0.3)"
+		c.fillRect(w/4-2,2,w/4*2,72)
+		c.fillStyle="rgba(255,255,255,8)"
+		c.font="bold 30px monospace"
+		c.fillText(infoItemText[0],w/3,30)
+		c.fillText(infoItemText[1],w/4,70)
+	}
+	for(var i=0;i<isAlerta.length;i++){
+		if(isAlerta[i]>0){
+			isAlerta[i]-=Configs['velocidade_dos_textos']+i/300
+			c.fillStyle=alertaColor[i]+","+isAlerta[i]+")"
+			c.font="bold 20px monospace"
+			c.fillText(alertaText[i],w/3,h-140+120*isAlerta[i])
+		}
+		else{
+			isAlerta.splice(i,1)
+			alertaText.splice(i,1)
+			alertaColor.splice(i,1)
+		}
+	}
 },1000/FPS)
