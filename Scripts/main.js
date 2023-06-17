@@ -4,24 +4,38 @@ var w=c.canvas.width=window.innerWidth*.99
 var h=c.canvas.height=window.innerHeight*.99
 var $inventario_div=document.querySelector("#inventario_div")
 var $inventario=document.querySelector("#inventario")
-var $armadura_div=document.querySelector("#armadura_div")
-var $inventario_items=document.querySelector("#inventario_items")
-var $arma_div=document.querySelector("#arma_div")
 var $info=document.querySelector("#info")
 var inventario=[]
 var armaduras=['','','','']
-var arma=escudo=''
+var $inventario_items=[]
+var $armaduras=[]
+var $arma;
+var $escudo;
+
+var arma= ''
+var escudo=''
 var XP=0
 var inventario_size=3
 var gridSize=10
 
-var Scale=6
+var fov=80
 
+var fogos=[]
+var plantas=[]
+var baus=[]
+
+var AI=[]
+for(var i=0;i<25;i++){
+	AI.push(0)
+	AI[i]+=Math.random()*Math.random()*2-1
+}
 for(var i=0;i<inventario_size*inventario_size;i++){
 	inventario.push('')
 }
 
-c.fillText("Carrregando...",w/2,h/2)
+console.log(AI)
+var Scale=(w/2/fov)-(gridSize/2/fov)
+
 
 //up,right,down,left
 var keys=[0,0,0,0]
@@ -29,6 +43,12 @@ var isDragging=false
 var dragging=null
 var offSetDragX=0
 var offSetDragY=0
+
+var isChangingKeys=false
+var keyInChange=''
+
+var delayFunction=[]
+var delayTime=[]
 
 var isInfo=false
 var infoItemText=['','']
@@ -42,13 +62,13 @@ var FPS=60
 var Scene=[]
 var Janelas=[]
 
-var player=new Entity('FraJoKaDev',5,5,[Math.round(Math.random()*3),Math.round(Math.random()*3),Math.round(Math.random()*3),Math.round(Math.random()*3)])
+var player=new Entity('Jogador',1,1,[Math.round(Math.random()*3),Math.round(Math.random()*3),Math.round(Math.random()*3),Math.round(Math.random()*3)])
 
-var enemy=new Entity('inimigo',Math.random()*tamanhoX,Math.random()*tamanhoY,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
+var enemy=new Entity('inimigo',Math.random()*tamanhoX-1,Math.random()*tamanhoY-1,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
 Scene.push(enemy)
-var enemy=new Entity('inimigo',Math.random()*tamanhoX,Math.random()*tamanhoY,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
+var enemy=new Entity('inimigo',Math.random()*tamanhoX-1,Math.random()*tamanhoY-1,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
 Scene.push(enemy)
-var enemy=new Entity('inimigo',Math.random()*tamanhoX,Math.random()*tamanhoY,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
+var enemy=new Entity('inimigo',Math.random()*tamanhoX-1,Math.random()*tamanhoY-1,[Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4,Math.round(Math.random()*6)-4])
 Scene.push(enemy)
 
 
@@ -59,7 +79,7 @@ var MaxVida=player.vida
 var camera={
 	x:0,
 	y:0,
-	fov:[50,50],
+	fov:[fov,fov*h/w],
 	render(){
 		for(var i=0;i<Mapa.length;i++){
 			var x,y,size
@@ -89,58 +109,75 @@ var camera={
 				c.font="bold 15px monospace"
 				c.fillText(Scene[i].vida,x+size/3,y-5)
 				c.drawImage(Scene[i].img,x,y,size,size)
-				if(Scene[i]!=player && Scene[i].vida>0){
+				/*if(Scene[i]!=player && Scene[i].vida>0){
 					enemyAI(Scene[i])
-				}
+				}*/
+			}
+			if(Scene[i]!=player && Scene[i].vida>0){
+				enemyAI(Scene[i])
 			}
 		}
 	}
 }
 
+
 //Eventos
 document.addEventListener('keydown',(e)=>{
-	switch(e.code){
-		case Configs['up1']:
-			keys[0]=1
+	if(isChangingKeys){
+		Configs[keyInChange]=e.code
+		isChangingKeys=false
+		createSettings()
+	}
+	else{
+		switch(e.code){
+			case Configs['up1']:
+				keys[0]=1
+				
+				break
+			case Configs['right1']:
+				keys[1]=1
+				
+				break
+			case Configs['down1']:
+				keys[2]=1
+				
+				break
+			case Configs['left1']:
+				keys[3]=1
+				
+				break
+			case Configs['up2']:
+				keys[0]=1
+				
+				break
+			case Configs['right2']:
+				keys[1]=1
+				
+				break
+			case Configs['down2']:
+				keys[2]=1
+				
+				break
+			case Configs['left2']:
+				keys[3]=1
+				break
+			case Configs['inventario']:
+				showInventario()
+				break
+			case Configs['trocar_maos']:
+				var temp=arma
+				arma=escudo
+				escudo=temp
+				reloadInventario()
+				break
+			case Configs['status']:
+				showInfo()
+				break
+			case Configs['settings']:
+				showSettings()
+				break
 			
-			break
-		case Configs['right1']:
-			keys[1]=1
-			
-			break
-		case Configs['down1']:
-			keys[2]=1
-			
-			break
-		case Configs['left1']:
-			keys[3]=1
-			
-			break
-		case Configs['up2']:
-			keys[0]=1
-			
-			break
-		case Configs['right2']:
-			keys[1]=1
-			
-			break
-		case Configs['down2']:
-			keys[2]=1
-			
-			break
-		case Configs['left2']:
-			keys[3]=1
-			break
-		case Configs['inventario']:
-			showInventario()
-			break
-		case Configs['status']:
-			showInfo()
-			break
-		case Configs['settings']:
-			showSettings()
-			break
-		
+		}
 	}
 },false)
 document.addEventListener('keyup',(e)=>{
@@ -182,88 +219,54 @@ document.addEventListener('mousedown',(e)=>{
 			offSetDragY=Janelas[i].style.top.split("px")[0]-e.clientY
 		}
 	}
-	for(var i=0;i<document.querySelectorAll('.item-div').length;i++){
-		if(e.target.parentNode == document.querySelectorAll('.item-div')[i]){
-			isDragging=true
-			if(e.target.parentNode.parentNode == $inventario_items){
-				dragging=inventario[e.target.dataset.index]
-				inventario[e.target.dataset.index]=''
-				offSetDragX=0
-				offSetDragY=e.target.dataset.index
-			}
-			else if(e.target.parentNode.parentNode == $armadura_div){
-				dragging=armaduras[e.target.dataset.index]
-				armaduras[e.target.dataset.index]=''
-				offSetDragX=1
-				offSetDragY=e.target.dataset.index
-			}
-			else if(e.target.parentNode.parentNode == $arma_div){
-				if(e.target.dataset.index==0){
-					dragging=arma
-					arma=''
-					offSetDragX=2
-				}
-				else if(e.target.dataset.index==1){
-					dragging=escudo
-					escudo=''
-					offSetDragX=3
-				}
-				offSetDragY=e.target.dataset.index
-				
-			}
-			reloadInfo()
-			reloadInventario()
+	
+	for(var j=0;j<$inventario_items.length;j++){
+		if(e.target == $inventario_items[j]){
+			dragging=inventario[j]
+			offSetDragX=0
+			offSetDragY=j
+			inventario[j]=''
 		}
 	}
+	for(var j=0;j<$armaduras.length;j++){
+		if(e.target == $armaduras[j]){
+			dragging=armaduras[j]
+			offSetDragX=1
+			offSetDragY=j
+			armaduras[j]=''
+		}
+	}
+	for(var j=0;j<baus.length;j++){
+		for(var k=0;k<Janelas[baus[j].index].children[0].children.length;k++){
+			if(e.target==Janelas[baus[j].index].children[0].children[k]){
+				offSetDragX=4
+				offSetDragY=[j,k]
+
+				dragging=baus[j].itens[k]
+				baus[j].itens[k]=''
+			}
+		}
+	}
+	if(e.target == $arma){
+		offSetDragX=2
+		dragging=arma
+		arma=''
+	}
+	else if(e.target == $escudo){
+		offSetDragX=3
+		dragging=escudo
+		escudo=''
+	}
+	if(dragging!=null){
+		isDragging=true
+	}
+
+	reloadInfo()
+	reloadInventario()
+	reloadBaus()
 },false)
 document.addEventListener('mouseup',(e)=>{
 	if(isDragging){
-		for(var i=0;i<document.querySelectorAll('.item-div').length;i++){
-			if(e.target.parentNode.parentNode == $inventario_items){
-				if(inventario[e.target.dataset.index]!=''){
-					var item=craft(inventario[e.target.dataset.index],dragging)
-					if(item!=null){
-						inventario[e.target.dataset.index]=item
-						alerta("+1 "+item.nome)
-					}
-					else{
-						returnItem()
-					}
-				}
-				else{
-					inventario[e.target.dataset.index]=dragging
-				}
-			}
-			else if(e.target.parentNode.parentNode == $armadura_div){
-				if(armaduras[e.target.dataset.index]==''){
-					armaduras[e.target.dataset.index]=dragging
-				}
-				else{
-					returnItem()
-				}
-			}
-			else if(e.target.parentNode.parentNode == $arma_div){
-				if(e.target.dataset.index==0){
-					if(arma==''){
-						arma=dragging
-					}
-					else{
-						returnItem()
-					}
-				}
-				else if(e.target.dataset.index==1){
-					if(escudo==''){
-						escudo=dragging
-					}
-					else{
-						returnItem()
-					}
-				}
-			}
-			buffaPlayer()
-			reloadInfo()
-			reloadInventario()
-		}
 		if(e.target==document.querySelector("#c")){
 			for(var i=Mapa.length-1;i>=0;i--){
 				var x,y,size
@@ -279,28 +282,201 @@ document.addEventListener('mouseup',(e)=>{
 				e.clientX<= x+size &&
 				e.clientY >= y &&
 				e.clientY<= y+size){
-					if(dragging.nome.split(' ')[0]=='parede'){
-						var temp=new Block(dragging.nome,Mapa[i].x,Mapa[i].y,1,true,pegaItemDuro,dragging.img.src)
+					if(isDragging){
+						if(dragging instanceof Block){
+							var temp=dragging
+							temp.x=Math.floor(Mapa[i].x)
+							temp.y=Math.floor(Mapa[i].y)
+						}
+						else{
+							var temp=craftMapa(Mapa[i],dragging)
+							if(temp!=null){
+								temp.x=Math.floor(Mapa[i].x)
+								temp.y=Math.floor(Mapa[i].y)
+								Mapa.splice(i,1)
+							}
+							else{
+								var temp=dragging
+								temp.x=Mapa[i].x+.25
+								temp.y=Mapa[i].y+.25
+							}
+							alerta("-1 "+dragging.nome,"rgba(255,0,0")
+						}
+						
+						Mapa.splice(i+1,0,temp)
+						break
 					}
-					else{
-						var temp=new Block(dragging.nome,Mapa[i].x+.25,Mapa[i].y+.25,0.5,false,pegaItem,dragging.img.src)
-					}
-					alerta("-1 "+dragging.nome,"rgba(255,0,0")
-					Mapa.splice(i+1,0,temp)
 				}
 			}
 		}
+		else{
+			for(var j=0;j<$inventario_items.length;j++){
+				if(e.target == $inventario_items[j]){
+					if(inventario[j]==''){
+						inventario[j]=dragging
+						isDragging=false
+					}
+					else{
+						var temp=craft(inventario[j],dragging)
+						if(temp!=null){
+							inventario[j]=temp
+						}
+						else{returnItem()}
+						isDragging=false
+					}
+				}
+			}
+			if(isDragging){
+				for(var j=0;j<$armaduras.length;j++){
+					if(e.target == $armaduras[j]){
+						if(armaduras[j]==''){
+							armaduras[j]=dragging
+						}
+						else{
+							returnItem()
+						}
+						isDragging=false
+					}
+				}
+			}
+			if(isDragging){
+				for (var j = 0; j < baus.length; j++) {
+					for (var k = 0; k < Janelas[baus[j].index].children[0].children.length; k++) {
+						if (e.target == Janelas[baus[j].index].children[0].children[k]) {
+							if(baus[j].itens[k]==''){
+								baus[j].itens[k] = dragging
+							}
+							else{
+								returnItem()
+							}
+							isDragging=false
+						}
+					}
+				}
+			}
+			if(isDragging){
+				if(e.target == $arma){
+					if(arma==''){
+						arma=dragging
+						isDragging=false
+					}
+					else{
+						var temp=arma
+						arma=dragging
+						dragging=temp
+						returnItem()
+					}
+				}
+				else if(e.target == $escudo){
+					if(escudo==''){
+						escudo=dragging
+						isDragging=false
+					}
+					else{
+						var temp=escudo
+						arma=dragging
+						dragging=temp
+						returnItem()
+					}
+				}
+				else{
+					returnItem()
+				}
+			}
+		}
+		buffaPlayer()
+		reloadInfo()
+		reloadInventario()
+		reloadBaus()
+		
 		isDragging=false
 		dragging=null
 	}
 },false)
 document.addEventListener('mousemove',(e)=>{
 	if(isDragging){
-		if(dragging.style){
+		if(dragging != null && dragging.style){
 			dragging.style.position="absolute"
 			dragging.style.left=e.clientX+offSetDragX +'px'
 			dragging.style.top=e.clientY+offSetDragY +'px'
 		}
+		else{
+			var temp=dragging.nome
+		}
+	}
+	else if(e.target==document.querySelector("#c")){
+		for(var i=Mapa.length-1;i>=0;i--){
+			var x,y,size
+			x=Mapa[i].x*gridSize-(camera.x-camera.fov[0])
+			y=Mapa[i].y*gridSize-(camera.y-camera.fov[1])
+			
+			x*=Scale
+			y*=Scale
+			
+			size=Mapa[i].size*gridSize*Scale
+			
+			if(e.clientX >= x &&
+			e.clientX<= x+size &&
+			e.clientY >= y &&
+			e.clientY<= y+size){
+				var temp=Mapa[i].nome
+				break
+			}
+		}
+		for(var i=0;i<Scene.length;i++){
+			var x,y,size
+			x=Scene[i].x*gridSize-(camera.x-camera.fov[0])
+			y=Scene[i].y*gridSize-(camera.y-camera.fov[1])
+			
+			x*=Scale
+			y*=Scale
+			
+			size=Scene[i].size*gridSize*Scale
+			
+			if(e.clientX >= x &&
+			e.clientX<= x+size &&
+			e.clientY >= y &&
+			e.clientY<= y+size){
+				var temp=Scene[i].nome
+				break
+			}
+		}
+	}
+	else{
+		for(var j=0;j<$inventario_items.length;j++){
+			if(e.target == $inventario_items[j]){
+				var temp=inventario[j].nome
+			}
+		}
+		for(var j=0;j<$armaduras.length;j++){
+			if(e.target == $armaduras[j]){
+				var temp=armaduras[j].nome
+			}
+		}
+		for(var j=0;j<baus.length;j++){
+			for(var k=0;k<Janelas[baus[j].index].children[0].children.length;k++){
+				if(e.target==Janelas[baus[j].index].children[0].children[k]){
+					var temp=baus[j].itens[k].nome
+				}
+			}
+		}
+		if(e.target == $arma){
+			if(e.target == $arma){
+				var temp=arma.nome
+			}
+		}
+		else if(e.target == $escudo){
+			if(e.target == $escudo){
+				var temp=escudo.nome
+			}
+		}
+	}
+	if(temp==undefined){
+		infoItemText=['','']
+		isInfo=false
+	}
+	else{
+		infoItem(temp)
 	}
 },false)
 document.querySelector("#c").addEventListener('click',(e)=>{
@@ -325,30 +501,86 @@ document.querySelector("#c").addEventListener('click',(e)=>{
 					
 				}
 				else{
-					console.log("Muito Longe para atacar")
+					alerta("Muito Longe para atacar ","rgba(255,0,0")
 				}
 				return
 			}
 		}
 	}
-	for(var i=Mapa.length;i>=0;i--){
-		if(Mapa[i] instanceof Block){
-			var x,y,size
-			x=Mapa[i].x*gridSize-(camera.x-camera.fov[0])
-			y=Mapa[i].y*gridSize-(camera.y-camera.fov[1])
-			
-			x*=Scale
-			y*=Scale
-			
-			size=Mapa[i].size*gridSize*Scale
-			
-			if(e.clientX >= x &&
-			e.clientX<= x+size &&
-			e.clientY >= y &&
-			e.clientY<= y+size &&
-			Mapa[i].funcao!=null){
+	for(var i=Mapa.length-1;i>=0;i--){
+		var x,y,size
+		x=Mapa[i].x*gridSize-(camera.x-camera.fov[0])
+		y=Mapa[i].y*gridSize-(camera.y-camera.fov[1])
+		
+		x*=Scale
+		y*=Scale
+		
+		size=Mapa[i].size*gridSize*Scale
+		
+		if(e.clientX >= x &&
+		e.clientX<= x+size &&
+		e.clientY >= y &&
+		e.clientY<= y+size){
+			if(Mapa[i].funcao!=null){
 				if(Math.sqrt(Math.pow(player.x-Mapa[i].x,2)+Math.pow(player.y-Mapa[i].y,2))<player.range){
-					Mapa[i].funcao()
+					var temp=construir(i)
+					if(temp!=null){
+						temp.x=Math.floor(Mapa[i].x)
+						temp.y=Math.floor(Mapa[i].y)
+						
+						Mapa.splice(i,1)
+						Mapa.splice(i+1,0,temp)
+						if(temp.nome=='bau'){
+							baus.push({obj:temp,itens:[],index:Janelas.length})
+							createBaus()
+						}
+					}
+					else{
+						switch(Mapa[i].funcao){
+							case pegaPlanta:
+								delay(() => { Mapa[i].funcao() }, 1000)
+								break
+							case pegaGraveto:
+								delay(() => { Mapa[i].funcao() }, 500)
+								break
+								case pegaPedra:
+								delay(() => { Mapa[i].funcao() }, 500)
+								break
+							case pegaItemDuro:
+								delay(() => { Mapa[i].funcao() }, 1000)
+								break
+							default:
+								delay(() => { Mapa[i].funcao() }, 10)
+								break
+						}
+					}
+				}
+				else{
+					alerta("Muito Longe ","rgba(255,0,0")
+				}
+				return
+			}
+			else if(Mapa[i] instanceof Item){
+				if(Math.sqrt(Math.pow(player.x-Mapa[i].x,2)+Math.pow(player.y-Mapa[i].y,2))<player.range){
+					var temp=construir(i)
+					if(temp!=null){
+						temp.x=Math.floor(Mapa[i].x)
+						temp.y=Math.floor(Mapa[i].y)
+						
+						Mapa.splice(i,1)
+						Mapa.splice(i+1,0,temp)
+						if(temp==Itens_Lista['fogo']){
+							fogos.push(temp)
+						}
+					}
+					else{
+						if(addInventario(Mapa[i])){
+							destroy(Mapa[i])
+						}
+						else{
+							alerta("Inventario Cheio","rgba(255,0,0")
+						}
+					}
 				}
 				else{
 					console.log("Muito Longe")
@@ -369,136 +601,120 @@ function showInventario(){
 	}
 }
 function createInventario(){
-	$inventario_items.textContent=''
-	$armadura_div.textContent=''
-	$arma_div.textContent=''
+	$inventario.textContent=''
+	$inventario_items=[]
+	$armaduras=[]
 	$inventario.style.width="90%"
 	
 	$inventario_div.style.width=window.innerWidth/2 * Configs["tamanho_das_janelas"] + 'px'
-	//$inventario_div.style.height=window.innerWidth/2 * Configs["tamanho_das_janelas"] + 'px'
+
+	//Criando Coluna de Armaduras! 
+	var inventory_col=document.createElement("DIV")
 	
-	var inventario_items_tam_px=Configs['tamanho_das_janelas']*window.innerWidth*.25
-	
-	var div=document.createElement("DIV")
-	var item=document.createElement("IMG")
-	div.style.width='100%'
-	item.style.width='98%'
-	if(armaduras[0].img){
-		item.src=armaduras[0].img.src
-	}
-	else{
-		item.src=''
-	}
-	item.setAttribute('data-index',0)
-	div.appendChild(item)
-	div.setAttribute("class","item-div")
-	$armadura_div.appendChild(div)
-	
-	var div=document.createElement("DIV")
-	var item=document.createElement("IMG")
-	div.style.width='100%'
-	item.style.width='98%'
-	if(armaduras[1].img){
-		item.src=armaduras[1].img.src
-	}
-	else{
-		item.src=''
-	}
-	item.setAttribute('data-index',1)
-	div.appendChild(item)
-	div.setAttribute("class","item-div")
-	$armadura_div.appendChild(div)
-	
-	var div=document.createElement("DIV")
-	var item=document.createElement("IMG")
-	div.style.width='100%'
-	item.style.width='98%'
-	if(armaduras[2].img){
-		item.src=armaduras[2].img.src
-	}
-	else{
-		item.src=''
-	}
-	item.setAttribute('data-index',2)
-	div.appendChild(item)
-	div.setAttribute("class","item-div")
-	$armadura_div.appendChild(div)
-	
-	var div=document.createElement("DIV")
-	var item=document.createElement("IMG")
-	div.style.width='100%'
-	item.style.width='98%'
-	if(armaduras[3].img){
-		item.src=armaduras[3].img.src
-	}
-	else{
-		item.src=''
-	}
-	item.setAttribute('data-index',3)
-	div.appendChild(item)
-	div.setAttribute("class","item-div")
-	$armadura_div.appendChild(div)
-	
-	for(var i=0;i<inventario_size;i++){
-		for(var j=0;j<inventario_size;j++){
-			var div=document.createElement("DIV")
-			var item=document.createElement("IMG")
-			div.style.display="inline-block"
-			div.style.margin="1%"
-			div.style.width= inventario_items_tam_px/inventario_size-window.innerWidth*.02+ 'px'
-			div.style.minHeight= inventario_items_tam_px/inventario_size-window.innerWidth*.02 +'px'
-			
-			item.style.width="100%"
-			if(inventario[j+i*inventario_size].img){
-				item.src=inventario[j+i*inventario_size].img.src
-				inventario[j+i*inventario_size].x=j
-				inventario[j+i*inventario_size].y=i
-			}
-			else{
-				item.src=''
-			}
-			item.setAttribute('data-index',j+i*inventario_size)
-			div.setAttribute("class","item-div")
-			div.appendChild(item)
-			$inventario_items.appendChild(div)
+	for(var i=0;i<armaduras.length;i++){
+		var data=document.createElement("DIV")
+		data.style.width=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+		data.style.height=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+		
+		data.style.backgroundSize=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+
+		if(armaduras[i]!=''){
+			data.style.backgroundImage="url("+armaduras[i].img.src+")"
 		}
+		data.style.display="inline-block"
+		data.setAttribute("class","item-div")
+		$armaduras.push(data)
+		inventory_col.appendChild(data)
 	}
+	inventory_col.style.width=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+	inventory_col.style.marginLeft="10%"
+	inventory_col.style.display='inline-block'
+
 	
-	var div=document.createElement("DIV")
-	var item=document.createElement("IMG")
-	div.style.width='100%'
-	item.style.width='98%'
-	if(arma.img){
-		item.src=arma.img.src
-	}
-	else{
-		item.src=''
-	}
-	item.setAttribute('data-index',0)
-	div.appendChild(item)
-	div.setAttribute("class","item-div")
-	$arma_div.appendChild(div)
+
+	$inventario.appendChild(inventory_col)
+
+	//Criando Coluna de Itens! 
+	var inventory_col=document.createElement("DIV")
 	
-	var div=document.createElement("DIV")
-	var item=document.createElement("IMG")
-	div.style.width='100%'
-	item.style.width='98%'
-	if(escudo.img){
-		item.src=escudo.img.src
+
+	for(var i=0;i<inventario.length;i++){
+		var data=document.createElement("DIV")
+		data.style.margin='0px'
+		data.style.width=1/2*Number($inventario_div.style.width.split('px')[0])/inventario_size-inventario_size + 'px'
+		data.style.height=1/2*Number($inventario_div.style.width.split('px')[0])/inventario_size-inventario_size + 'px'
+		
+		data.style.backgroundSize=1/2*Number($inventario_div.style.width.split('px')[0])/inventario_size-inventario_size + 'px'
+
+		if(inventario[i]!=''){
+			data.style.backgroundImage="url("+inventario[i].img.src+")"
+		}
+		data.style.display="inline-block"
+		data.setAttribute("class","item-div")
+
+		$inventario_items.push(data)
+
+		inventory_col.appendChild(data)
 	}
-	else{
-		item.src=''
+	inventory_col.style.width=1/2*$inventario_div.style.width.split('px')[0] + 'px'
+	inventory_col.style.marginLeft="2.5%"
+	inventory_col.style.marginRight="2.5%"
+	inventory_col.style.lineHeight="0px"
+	inventory_col.style.display='inline-block'
+	$inventario.appendChild(inventory_col)
+	
+	//Criando Arma
+	var inventory_col=document.createElement("DIV")
+
+	var data=document.createElement("DIV")
+	data.style.width=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+	data.style.height=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+	
+	data.style.backgroundSize=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+
+	if(arma!=''){
+		data.style.backgroundImage="url("+arma.img.src+")"
 	}
-	item.setAttribute('data-index',1)
-	div.appendChild(item)
-	div.setAttribute("class","item-div")
-	$arma_div.appendChild(div)
+	data.style.display="inline-block"
+	data.setAttribute("class","item-div")
+
+	$arma=data
+
+	inventory_col.appendChild(data)
+
+	//Criando Escudo
 	
-	Janelas.push($inventario_div)
+	var data=document.createElement("DIV")
+	data.style.width=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+	data.style.height=1/8*$inventario_div.style.width.split('px')[0] + 'px'
 	
+	data.style.backgroundSize=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+
+	if(escudo!=''){
+		data.style.backgroundImage="url("+escudo.img.src+")"
+	}
+	data.style.display="inline-block"
+	data.setAttribute("class","item-div")
+	inventory_col.appendChild(data)
+
+	inventory_col.style.width=1/8*$inventario_div.style.width.split('px')[0] + 'px'
+	inventory_col.style.display='inline-block'
+
+	$escudo=data
+
+	$inventario.appendChild(inventory_col)
+
+
+
+	Janelas.push($inventario_div)	
 }
 function reloadInventario(){
 	createInventario()
+	for(var i=0;i<inventario_size*inventario_size;i++){
+		if(inventario[i]==undefined){
+			inventario.push('')
+		}
+	}
 	Janelas.splice(Janelas.length-1,1)
 }
 function createInfo(){
@@ -588,6 +804,80 @@ function showSettings(){
 		document.querySelector("#settings_div").style.display='none'
 	}
 }
+function showHUD(){
+	c.font='20px Arial bold'
+	if(arma!=''){
+		c.fillText(arma.nome,w/10*8,h-h/10-w/29)
+		c.drawImage(arma.img,w/10*8,h-h/10-w/30,w/15,w/15)
+	}
+	if(escudo!=''){
+		c.fillText(escudo.nome,w/10*9,h-h/10-w/29)
+		c.drawImage(escudo.img,w/10*9,h-h/10-w/30,w/15,w/15)
+	}
+	c.strokeStyle="#000"
+	c.strokeRect(w/10*8,h-h/10-w/30,w/15,w/15)
+	c.strokeRect(w/10*9,h-h/10-w/30,w/15,w/15)
+}
+function createBaus(){
+	for(var i=0;i<baus.length;i++){
+		if (Janelas[baus[i].index] == undefined) {
+			var div = document.createElement("DIV")
+			var div_items = document.createElement("DIV")
+			
+			div.setAttribute('id','bau')
+			div.style.position="absolute"
+			div.style.opacity="0.9"
+			div.style.backgroundColor="#ddd"
+			div.style.border="3px solid #000"
+			div.style.borderRadius="3px"
+
+			div.style.width = 50 * Configs['tamanho_das_janelas'] + 'vw'
+			div.style.height = 50 * Configs['tamanho_das_janelas'] + 'vw'
+
+			div.style.left='0px'
+			div.style.top='0px'
+
+			div_items.style.margin='12.5%'
+			div_items.style.width='87.5%'
+			div_items.style.height='87.5%'
+			for (var j = 0; j < 4 * 4; j++) {
+				var item = document.createElement("DIV")
+
+				item.style.bakgroundSize='cover'
+
+				item.setAttribute('class', 'item-div')
+				item.style.width = '20%'
+				item.style.height = '20%'
+
+				item.style.display="inline-block"
+
+				if(baus[i].itens[j]==undefined){
+					baus[i].itens[j]=''
+				}
+				else{
+					item.style.backgroundImage='url('+baus[i].itens[j].img.src+')'
+				}
+
+				div_items.appendChild(item)
+			}
+			div.appendChild(div_items)
+			document.querySelector('BODY').appendChild(div)
+			Janelas.push(div)
+		}
+	}
+}
+function reloadBaus(){
+	for(var i=0;i<baus.length;i++){
+		for (var j = 0; j < baus[i].itens.length; j++){
+			if(baus[i].itens[j]!=''){
+				document.querySelectorAll("#bau")[i].children[0].children[j].style.backgroundImage='url('+baus[i].itens[j].img.src+')'
+			}
+			else{
+				document.querySelectorAll("#bau")[i].children[0].children[j].style.backgroundImage=''
+			}
+		} 
+	}
+}
 function clear(){
 	c.fillStyle="#fff"
 	c.fillRect(0,0,w,h)
@@ -597,20 +887,24 @@ function movePlayer(){
 	if(keys[1]==1 && !collideMap(player.x+player.velocidade,player.y,player.size)){player.x+=player.velocidade}
 	if(keys[2]==1 && !collideMap(player.x,player.y+player.velocidade,player.size)){player.y+=player.velocidade}
 	if(keys[3]==1 && !collideMap(player.x-player.velocidade,player.y,player.size)){player.x-=player.velocidade}
+	
 	camera.x=player.x*gridSize
 	camera.y=player.y*gridSize
 }
 function collideMap(x,y,size){
 	for(var i=0;i<Mapa.length;i++){
 		if(Mapa[i].solid){
-			ox=Mapa[i].x
-			oy=Mapa[i].y
-			osize=Mapa[i].size
+			var ox=Mapa[i].x
+			var oy=Mapa[i].y
+			var osize=Mapa[i].size
 		
 			if(x+size>ox &&
 			x<ox+osize &&
 			y+size>oy &&
 			y<oy+osize){
+				if(Mapa[i] in fogos){
+					damage({nome:'fogo',atk:1},player)
+				}
 				return true
 			}
 		}
@@ -649,14 +943,33 @@ function returnItem(){
 		case 3:
 			escudo=dragging
 			break;
+		case 4:
+			baus[offSetDragY[0]].itens[offSetDragY[1]]=dragging
 	}
 }
 function buffaPlayer(){
 	var temp=player.buffs
-	player.buffs=[0,0,0,0,0,0]
+	var temp1=inventario_size
+	player.buffs=[0,0,0,0,0,0,0]
 	
 	for(var i=0;i<armaduras.length;i++){
 		if(armaduras[i] instanceof Item){
+			if(armaduras[i].nome.split(' ')[0] == 'bolsa'){
+				switch(armaduras[i].nome.split(' ')[1]){
+					case 'de':
+						inventario_size=4
+						break
+					case 'maior':
+						inventario_size=5
+						break
+					case 'grande':
+						inventario_size=6
+						break
+					default:
+						inventario_size=3
+				}
+				reloadInventario()
+			}
 			for(var j=0;j<armaduras[i].buffs.length;j++){
 				player.buffs[j]+=armaduras[i].buffs[j]
 			}
@@ -672,23 +985,28 @@ function buffaPlayer(){
 			player.buffs[j]+=escudo.buffs[j]
 		}
 	}
+
+	for(var i=0;i<inventario_size*inventario_size-inventario.length;i++){
+		inventario.push('')
+	}
 	
 	if(player.buffs[0]>temp[0]){alerta("+1 de Vida")}
 	if(player.buffs[1]>temp[1]){alerta("+0.01 de Velocidade")}
 	if(player.buffs[2]>temp[2]){alerta("+1 de Ataque")}
 	if(player.buffs[3]>temp[3]){alerta("+1 de Alcance")}
-	if(player.buffs[4]>temp[4]){alerta("+1 de Defesa")}
+	if(player.buffs[4]>temp[4]){alerta("+0.25 de Defesa")}
 	if(player.buffs[5]>temp[5]){alerta("+1 de Mineracao")}
 	if(player.buffs[6]>temp[6]){alerta("+1 de Agricultura")}
+	if(inventario_size>temp1){alerta("Mais espaco no Inventario")}
 	
 	if(player.buffs[0]<temp[0]){alerta("-1 de Vida","rgba(255,0,0")}
 	if(player.buffs[1]<temp[1]){alerta("-0.01 de Velocidade","rgba(255,0,0")}
 	if(player.buffs[2]<temp[2]){alerta("-1 de Ataque","rgba(255,0,0")}
 	if(player.buffs[3]<temp[3]){alerta("-1 de Alcance","rgba(255,0,0")}
-	if(player.buffs[4]<temp[4]){alerta("-1 de Defesa","rgba(255,0,0")}
+	if(player.buffs[4]<temp[4]){alerta("-0.25 de Defesa","rgba(255,0,0")}
 	if(player.buffs[5]<temp[5]){alerta("-1 de Mineracao","rgba(255,0,0")}
 	if(player.buffs[6]<temp[6]){alerta("-1 de Agricultura","rgba(255,0,0")}
-	
+	if(inventario_size<temp1){alerta("Menos espaco no Inventario","rgba(255,0,0")}
 	
 	reloadInfo()
 }
@@ -703,7 +1021,13 @@ function destroy(obj){
 function damage(obj1,obj2){
 	if(Math.random()*5<=obj1.stats[0]-obj2.def && obj2.vida>0){
 		obj2.vida-=obj1.atk
+		
+		obj2.x+=(obj2.x-obj1.x)/obj1.atk
+		obj2.y+=(obj2.y-obj1.y)/obj1.atk
+		
 		if(obj2 == player){
+			camera.x+=(obj2.x-obj1.x)/obj1.atk
+			camera.y+=(obj2.y-obj1.y)/obj1.atk
 			alerta('-'+obj1.atk+' de vida '+obj2.nome,"rgba(255,0,0")
 			reloadInfo()
 		}
@@ -722,25 +1046,96 @@ function damage(obj1,obj2){
 	}
 }
 function enemyAI(enemy){
-	if(enemy.x<player.x && !collideMap(enemy.x+enemy.velocidade,enemy.y,enemy.size)){
+	var input=[0,0,0,0,0]
+	var neurons=[0,0,0,0,0]
+	var o=[0,0,0,0,0]
+	var max=null
+	
+	input[0]=player.x
+	input[1]=player.y
+	
+	input[2]=enemy.x
+	input[3]=enemy.y
+	
+	input[4]=Math.sqrt(Math.pow(enemy.x-player.x,2)+Math.pow(enemy.y-player.y,2))
+	
+	for(var i=0;i<input.length;i++){
+		for(var j=0;j<neurons.length;j++){
+			neurons[j]=Math.floor(input[j]*AI[i])
+		}
+	}
+	for(var i=0;i<neurons.length;i++){
+		for(var j=0;j<o.length;j++){
+			o[j]=Math.floor(neurons[j]*AI[i])
+		}
+	}
+	for(var i=0;i<o.length;i++){
+		if(i==0){
+			max=0
+		}
+		else{
+			if(o[i]>=o[max]){
+				max=i
+			}
+		}
+	}
+	
+	if(max==0 && !collideMap(enemy.x+enemy.velocidade,enemy.y,enemy.size)){
 		enemy.x+=enemy.velocidade
 	}
-	if(enemy.y<player.y && !collideMap(enemy.x,enemy.y+enemy.velocidade,enemy.size)){
+	if(max==1 && !collideMap(enemy.x,enemy.y+enemy.velocidade,enemy.size)){
 		enemy.y+=enemy.velocidade
 	}
-	if(enemy.x>player.x && !collideMap(enemy.x-enemy.velocidade,enemy.y,enemy.size)){
+	if(max==2 && !collideMap(enemy.x-enemy.velocidade,enemy.y,enemy.size)){
 		enemy.x-=enemy.velocidade
 	}
-	if(enemy.y>player.y && !collideMap(enemy.x,enemy.y-enemy.velocidade,enemy.size)){
+	if(max==3 && !collideMap(enemy.x,enemy.y-enemy.velocidade,enemy.size)){
 		enemy.y-=enemy.velocidade
 	}
-	if(Math.sqrt(Math.pow(enemy.x-player.x,2)+Math.pow(enemy.y-player.y,2))<player.range && Date.now()%50==0){
+	if(Math.sqrt(Math.pow(enemy.x-player.x,2)+Math.pow(enemy.y-player.y,2))<enemy.range && max==4){
 		damage(enemy,player)
 	}
+	
+	var x=enemy.x*gridSize-(camera.x-camera.fov[0])
+	var y=enemy.y*gridSize-(camera.y-camera.fov[1])
+	c.fillText(o,x*Scale,y*Scale-30)
 }
-function infoItem(nome,info){
+function infoItem(nome){
 	infoItemText[0]=nome
-	infoItemText[1]=info
+	infoItemText[1]=''
+	if(Itens_Lista[nome] instanceof Item){
+		for(var i=0;i<Itens_Lista[nome].buffs.length;i++){
+			if(Itens_Lista[nome].buffs[i]!=0){
+				switch(i){
+					case 0:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Vida; '
+						break
+					case 1:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Velocidade; '
+						break
+					case 2:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Atk; '
+						break
+					case 3:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Alcance; '
+						break
+					case 4:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Defesa; '
+						break
+					case 5:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Mineracao; '
+						break
+					case 6:
+						infoItemText[1]+='+'+Itens_Lista[nome].buffs[i]+' Agricultura; '
+						break
+				}
+			}
+		}
+	}
+	else if(Itens_Lista[nome] instanceof Block){
+		infoItemText[1]='Bloco'
+	}
+	else{infoItemText[1]=''}
 	isInfo=true
 }
 function alerta(text,color="rgba(255,255,255"){
@@ -749,30 +1144,68 @@ function alerta(text,color="rgba(255,255,255"){
 	isAlerta.push(1)
 }
 function reload(){
+	Janelas=[]
+	for(var i=0;i<document.querySelectorAll("#bau").length;i++){
+		document.querySelectorAll('#bau')[i].remove()
+	}
 	createInfo()
 	createInventario()
+	createBaus()
+}
+function startGame(){
+	console.log('Carregando...')
+
+	document.querySelector('#start').style.display='none'
+	
+
+	c.fillText("Carregando...",w/2,h/2)
+
+	createMap()
+	document.querySelector('#game').style.display='block'
+	reload()
+	for(var i=0;i<Janelas.length;i++){
+		Janelas[i].style.width='30%'
+		Janelas[i].style.left='0px'
+		Janelas[i].style.top='0px'
+	}
+	Janelas=[]
+
+	createInfo()
+	createInventario()
+	createSettings()
+	createBaus()
+	console.log('Pronto!')
+
+	
+	document.querySelector('audio').play()
+	document.querySelector('audio').volume=Configs['volume_musica']*Configs['volume_master']
+	
+}
+function delay(func,time,show=true,stop=true){
+	delayFunction.push(func)
+	delayTime.push({
+		now:Date.now(),
+		delta:time,
+		show:show,
+		stop:stop
+	})
 }
 
-console.log('Carregando...')
-createMap()
-reload()
-for(var i=0;i<Janelas.length;i++){
-	Janelas[i].style.width='30%'
-	Janelas[i].style.left='0px'
-	Janelas[i].style.top='0px'
+function devTP(obj){
+	player.x=obj.x
+	player.y=obj.y
 }
-Janelas=[]
 
-createInfo()
-createInventario()
-console.log('Pronto!')
+
 
 //Loop Principal
 setInterval(()=>{
 	clear()
 	
 	if(player.vida>0){
-		movePlayer()
+		if(delayFunction.length<1 || !delayTime[0].stop){
+			movePlayer()
+		}	
 	}
 	if(Math.floor(XP/100)==1){
 		var buttons=document.querySelectorAll('level_up_button')
@@ -780,8 +1213,23 @@ setInterval(()=>{
 			buttons[i].style.display='inline-block'
 		}
 	}
+
 	camera.render()
-	
+	showHUD()
+	for(var i=0;i<delayFunction.length;i++){
+		if(delayTime[i].show){
+			c.fillStyle="#ff0000"
+			c.fillRect((player.x*gridSize-(camera.x-camera.fov[0]))*Scale,(player.y*gridSize-(camera.y-camera.fov[1]))*Scale-30,
+			player.size*gridSize*Scale*(delayTime[i].delta-(Date.now()-delayTime[i].now))/delayTime[i].delta,10)
+			c.strokeStyle="#000000"
+			c.strokeRect((player.x*gridSize-(camera.x-camera.fov[0]))*Scale,(player.y*gridSize-(camera.y-camera.fov[1]))*Scale-30,player.size*gridSize*Scale,10)
+		}
+		if(Date.now()-delayTime[i].now >= delayTime[i].delta){
+			delayFunction[i]()
+			delayFunction.splice(i,1)
+			delayTime.splice(i,1)
+		}
+	}
 	if(isInfo){
 		c.fillStyle="rgba(55,55,55,0.3)"
 		c.fillRect(w/4-2,2,w/4*2,72)

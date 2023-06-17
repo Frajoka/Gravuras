@@ -20,11 +20,12 @@
 			span{
 				display:inline-block;
 			}
+			#game{display:none;}
 			#info_button{
 				display:inline-block;
 				position:absolute;
-				left:0px;
-				top:0px;
+				left:30px;
+				top:2px;
 				border-radius:50%;
 				width:3vw;
 				height:3vw;
@@ -117,9 +118,9 @@
 			}
 			#inventario_button{
 				display:inline-block;
-				margin-top:20px;
+				margin-top:25px;
 				position:absolute;
-				left:0px;
+				left:30px;
 				top:20px;
 				border-radius:20%;
 				width:3vw;
@@ -153,23 +154,6 @@
 				margin-top:10%;
 				margin-bottom:10%;
 			}
-			#armadura_div{
-				display:inline-block;
-				width:13%;
-				margin-left:5%;
-				margin-right:5%;
-			}
-			#inventario_items{
-				display:inline-block;
-				width:50%;
-				transform:translateY(-20%);
-			}
-			#arma_div{
-				display:inline-block;
-				width:10%;
-				margin-left:0%;
-				margin-right:5%;
-			}
 			.item-div{
 				background-color:#aaa;
 				border-top:1px solid #999;
@@ -180,135 +164,146 @@
 		</style>
 		<title>Gravurass</title>
 	</head>
-	<body style="background:#;">
-		<canvas id='c'>Browser does not support HTML5Canvas</canvas>
-		<button onclick="showInfo()" id="info_button">i</button>
-		<button id="settings_button" onclick="showSettings()"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSwP8Fd78JuQVAm01azpxI9d0LELz9udy2Glbq5lZ4SoMOPV6iu4bA8pvLSw&s"></button>
-		<div id="settings_div">
-			<h4>Audio</h4>
-			<ul>
-				<li>
-					<label>Volume</label>
-					<input type="range" min='0' max='1' step='0.01' value="1" class="audio"></input>
-				</li>
-				<li>
-					<label>Musica</label>
-					<input type="range" min='0' max='1' step='0.01' value="1" class="audio"></input>
-				</li>
-			</ul>
-			<h4>Display</h4>
-			<ul>
-				<li>
-					<label>Tamanho das Janelas</label>
-					<input type="range" min='0' max='1' step='0.01' value="0.6" class="display"></input>
-				</li>
-				<li>
-					<label>Velocidade dos Textos</label>
-					<input type="range" min='0' max='1' step='0.01' value="0.01" class="display"></input>
-				</li>
-			</ul>
-			<h4>Controles</h4>
-			<ul>
-				<h4>Movimentos</h5>
+	<body style="background:#ddd;">
+		<audio autoplay="true">
+			<source src="ambient.ogg" type="audio/ogg">
+			<source src="ambient.mp3" type="audio/mpeg">
+		</audio>
+		<div id="start">
+			<h1>Gravuras</h1>
+			<button onclick="startGame()">Start Game</button>
+		</div>
+		<div id="game">
+			<canvas id='c'>Browser does not support HTML5Canvas</canvas>
+			<button onclick="showInfo()" id="info_button">i</button>
+			<button id="settings_button" onclick="showSettings()"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSwP8Fd78JuQVAm01azpxI9d0LELz9udy2Glbq5lZ4SoMOPV6iu4bA8pvLSw&s"></button>
+			<div id="settings_div">
+				<h4>Audio</h4>
 				<ul>
 					<li>
-						<label>Cima</label>
-						<button class="movimentos"></button>
-						<button class="movimentos"></button>
+						<label>Volume</label>
+						<input type="range" min='0' max='1' step='0.01' value="1" class="audio"></input>
 					</li>
 					<li>
-						<label>Baixo</label>
-						<button class="movimentos"></button>
-						<button class="movimentos"></button>
-					</li>
-					<li>
-						<label>Esquerda</label>
-						<button class="movimentos"></button>
-						<button class="movimentos"></button>
-					</li>
-					<li>
-						<label>Direita</label>
-						<button class="movimentos"></button>
-						<button class="movimentos"></button>
+						<label>Musica</label>
+						<input type="range" min='0' max='1' step='0.01' value="1" class="audio"></input>
 					</li>
 				</ul>
-				<h4>Atalhos</h5>
+				<h4>Display</h4>
 				<ul>
 					<li>
-						<label>Abrir/Fechar Inventario</label>
-						<button class="atalhos"></button>
+						<label>Tamanho das Janelas</label>
+						<input type="range" min='0.3' max='1' step='0.01' value="0.6" class="display"></input>
 					</li>
 					<li>
-						<label>Abrir/Fechar Status</label>
-						<button class="atalhos"></button>
-					</li>
-					<li>
-						<label>Abrir/Fechar Configuracoes</label>
-						<button class="atalhos"></button>
+						<label>Velocidade dos Textos</label>
+						<input type="range" min='0.01' max='0.05' step='0.001' value="0" class="display"></input>
 					</li>
 				</ul>
-			</ul>
+				<h4>Controles</h4>
+				<ul>
+					<h4>Movimentos</h5>
+					<ul>
+						<li>
+							<label>Cima</label>
+							<button class="movimentos"></button>
+							<button class="movimentos"></button>
+						</li>
+						<li>
+							<label>Baixo</label>
+							<button class="movimentos"></button>
+							<button class="movimentos"></button>
+						</li>
+						<li>
+							<label>Esquerda</label>
+							<button class="movimentos"></button>
+							<button class="movimentos"></button>
+						</li>
+						<li>
+							<label>Direita</label>
+							<button class="movimentos"></button>
+							<button class="movimentos"></button>
+						</li>
+					</ul>
+					<h4>Atalhos</h5>
+					<ul>
+						<li>
+							<label>Abrir/Fechar Inventario</label>
+							<button class="atalhos"></button>
+						</li>
+						<li>
+							<label>Trocar Espada/Escudo</label>
+							<button class="atalhos"></button>
+						</li>
+						<li>
+							<label>Abrir/Fechar Status</label>
+							<button class="atalhos"></button>
+						</li>
+						<li>
+							<label>Abrir/Fechar Configuracoes</label>
+							<button class="atalhos"></button>
+						</li>
+					</ul>
+				</ul>
+			</div>
+			
+			<button onclick="showInventario()" id="inventario_button"><img style="width:90%;" src="inventory_png.png"></button>
+			<div id="info">
+				<h3 id="name">Nome</h3>
+				<p id="hp">Vida</p>
+				<p id="xp">XP:</p>
+				<br>
+				<p id="vel">Velocidade</p>
+				<br>
+				<span>
+					<p>Ataque</p>
+					<p id='atk'></p>
+				</span>
+				<span>
+					<p>Defesa</p>
+					<p id='def'></p>
+				</span>
+				<div>
+					<p>For&ccedil;a</p>
+					<span class="bar-container">
+						<span id='bar'>
+						</span>
+					</span>
+					<button id="level_up_button">&plus;</button>
+				</div>
+				<div>
+					<p>Agilidade</p>
+					<span class="bar-container">
+						<span id='bar'>
+						</span>
+					</span>
+					<button id="level_up_button">&plus;</button>
+				</div>
+				<div>
+					<p>Vitalidade</p>
+					<span class="bar-container">
+						<span id='bar'>
+						</span>
+					</span>
+					<button id="level_up_button">&plus;</button>
+				</div>
+				<div>
+					<p>Intelecto</p>
+					<span class="bar-container">
+						<span id='bar'>
+						</span>
+					</span>
+					<button id="level_up_button">&plus;</button>
+				</div>
+			</div>
+			<div id="inventario_div">
+				<span id="close" onclick="showInventario()">&times;</span>
+				<h3>Inventario</h3>
+				<div id="inventario">
+					
+				</div>
+			</div>
 		</div>
-		
-		<button onclick="showInventario()" id="inventario_button"><img style="width:90%;" src="inventory_png.png"></button>
-		<div id="info">
-			<h3 id="name">Nome</h3>
-			<p id="hp">Vida</p>
-			<p id="xp">XP:</p>
-			<br>
-			<p id="vel">Velocidade</p>
-			<br>
-			<span>
-				<p>Ataque</p>
-				<p id='atk'></p>
-			</span>
-			<span>
-				<p>Defesa</p>
-				<p id='def'></p>
-			</span>
-			<div>
-				<p>For&ccedil;a</p>
-				<span class="bar-container">
-					<span id='bar'>
-					</span>
-				</span>
-				<button id="level_up_button">&plus;</button>
-			</div>
-			<div>
-				<p>Agilidade</p>
-				<span class="bar-container">
-					<span id='bar'>
-					</span>
-				</span>
-				<button id="level_up_button">&plus;</button>
-			</div>
-			<div>
-				<p>Vitalidade</p>
-				<span class="bar-container">
-					<span id='bar'>
-					</span>
-				</span>
-				<button id="level_up_button">&plus;</button>
-			</div>
-			<div>
-				<p>Intelecto</p>
-				<span class="bar-container">
-					<span id='bar'>
-					</span>
-				</span>
-				<button id="level_up_button">&plus;</button>
-			</div>
-		</div>
-		<div id="inventario_div">
-			<span id="close" onclick="showInventario()">&times;</span>
-			<h3>Inventario</h3>
-			<div id="inventario">
-				<div id="armadura_div"></div>
-				<div id="inventario_items"></div>
-				<div id="arma_div"></div>
-			</div>
-		</div>
-		
 		
 		<script src="Scripts/configs.js"></script>
 		<script src="Scripts/player.js"></script>
