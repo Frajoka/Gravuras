@@ -33,7 +33,7 @@ class Item{
 	}
 }
 class Block{
-	constructor(nome,x,y,size=1,solid=true,funcao=null,img="https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c5/Grass.png/revision/latest?cb=20230226144251"){
+	constructor(nome,x,y,size=1,solid=true,funcao=null,img="Grass.png"){
 		this.x=x
 		this.y=y
 		this.nome=nome
