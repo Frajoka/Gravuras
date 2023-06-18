@@ -33,7 +33,7 @@ class Item{
 	}
 }
 class Block{
-	constructor(nome,x,y,size=1,solid=true,funcao=null,img="../Grass.png"){
+	constructor(nome,x,y,size=1,solid=true,funcao=null,img="Grass.png"){
 		this.x=x
 		this.y=y
 		this.nome=nome
