@@ -33,7 +33,7 @@ class Item{
 	}
 }
 class Block{
-	constructor(nome,x,y,size=1,solid=true,funcao=null,img="Gravuras/Grass.png"){
+	constructor(nome,x,y,size=1,solid=true,funcao=null,img="https://static.wikia.nocookie.net/minecraftpocketedition/images/0/01/Tall_Grass.png/revision/latest/scale-to-width-down/150?cb=20160404102321"){
 		this.x=x
 		this.y=y
 		this.nome=nome
