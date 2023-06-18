@@ -45,7 +45,7 @@ function createMap(){
 			}
 			else if(j>=1 && i>=1 &&
 				j<tamanhoX-1 && i<tamanhoY-1 && Math.random()+0.8<=noiseMap[i][j]){
-				Mapa.push(new Block('Planta',j,i,1,false,pegaPlanta,'https://static.wikia.nocookie.net/minecraftpocketedition/images/c/c3/Double_Tallgrass2.png/revision/latest?cb=20170530163004'))
+				Mapa.push(new Block('Planta',j,i,1,false,pegaPlanta,'../Tall_Grass.png'))
 				plantas.push(
 					{obj:Mapa[Mapa.length-1],
 					tipo:Math.random()<.5 ? 'trepadeira' : 'planta-folha'}
