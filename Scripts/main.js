@@ -17,6 +17,7 @@ var escudo=''
 var XP=0
 var inventario_size=3
 var gridSize=10
+var showCoords=false
 
 var fov=80
 
@@ -77,8 +78,8 @@ Scene.push(player)
 var MaxVida=player.vida
 
 var camera={
-	x:0,
-	y:0,
+	x:2.5,
+	y:2.5,
 	fov:[fov,fov*h/w],
 	render(){
 		for(var i=0;i<Mapa.length;i++){
@@ -284,6 +285,10 @@ document.addEventListener('mouseup',(e)=>{
 				e.clientY<= y+size){
 					if(isDragging){
 						if(dragging instanceof Block){
+							if(dragging.nome=='bau'){
+								baus.push({ obj: dragging, itens: [], index: Janelas.length })
+								createBaus()
+							}
 							var temp=dragging
 							temp.x=Math.floor(Mapa[i].x)
 							temp.y=Math.floor(Mapa[i].y)
@@ -302,7 +307,6 @@ document.addEventListener('mouseup',(e)=>{
 							}
 							alerta("-1 "+dragging.nome,"rgba(255,0,0")
 						}
-						
 						Mapa.splice(i+1,0,temp)
 						break
 					}
@@ -374,7 +378,7 @@ document.addEventListener('mouseup',(e)=>{
 					}
 					else{
 						var temp=escudo
-						arma=dragging
+						escudo=dragging
 						dragging=temp
 						returnItem()
 					}
@@ -583,7 +587,7 @@ document.querySelector("#c").addEventListener('click',(e)=>{
 					}
 				}
 				else{
-					console.log("Muito Longe")
+					alerta("Muito Longe",'rgba(255,0,0')
 				}
 				return
 			}
@@ -768,10 +772,17 @@ function reloadInfo(){
 	
 	var bars=document.querySelectorAll('#bar')
 	
+	player.velocidade=(10+player.stats[1]+player.stats[2]+player.buffs[1])/100
+	player.range=2*(player.buffs[3]+1)
+	
+	player.atk=player.stats[0]+1+player.buffs[2]
+	player.def=0+player.buffs[4]
+
 	nome.innerHTML=player.nome
 	vida.innerHTML='Vida:'+player.vida+'/'+MaxVida
 	xp.innerHTML='Level:'+Math.floor(XP/100)+' '+ XP +'xp' 
 	velocidade.innerHTML='Velocidade:'+player.velocidade
+	
 	
 	ataque.innerHTML=player.atk
 	defesa.innerHTML=player.def
@@ -869,14 +880,23 @@ function createBaus(){
 function reloadBaus(){
 	for(var i=0;i<baus.length;i++){
 		for (var j = 0; j < baus[i].itens.length; j++){
-			if(baus[i].itens[j]!=''){
-				document.querySelectorAll("#bau")[i].children[0].children[j].style.backgroundImage='url('+baus[i].itens[j].img.src+')'
+			if (baus[i].itens[j] != '') {
+				document.querySelectorAll("#bau")[i].children[0].children[j].style.backgroundImage = 'url(' + baus[i].itens[j].img.src + ')'
 			}
-			else{
-				document.querySelectorAll("#bau")[i].children[0].children[j].style.backgroundImage=''
+			else {
+				document.querySelectorAll("#bau")[i].children[0].children[j].style.backgroundImage = ''
 			}
 		} 
 	}
+}
+function removeBau(obj){
+	for(var i=0;i<baus.length;i++){
+		if(baus[i].obj==obj){
+			Janelas.splice(baus[i].index,1)
+			baus.splice(i,1)
+		}
+	}
+	reload()
 }
 function clear(){
 	c.fillStyle="#fff"
@@ -888,8 +908,19 @@ function movePlayer(){
 	if(keys[2]==1 && !collideMap(player.x,player.y+player.velocidade,player.size)){player.y+=player.velocidade}
 	if(keys[3]==1 && !collideMap(player.x-player.velocidade,player.y,player.size)){player.x-=player.velocidade}
 	
-	camera.x=player.x*gridSize
-	camera.y=player.y*gridSize
+	if(camera.x<player.x*gridSize){camera.x+=(player.x*gridSize-camera.x)*0.1}
+	if(camera.x>player.x*gridSize){camera.x+=(player.x*gridSize-camera.x)*0.1}
+	if(camera.y<player.y*gridSize){camera.y+=(player.y*gridSize-camera.y)*0.1}
+	if(camera.y>player.y*gridSize){camera.y+=(player.y*gridSize-camera.y)*0.1}
+
+	if(baus.length>0){
+		for (var i = 0; i < baus.length; i++) {
+			if(Janelas[baus[i].index].style.display!="none" && Math.sqrt(Math.pow(baus[i].obj.x-player.x,2)+Math.pow(baus[i].obj.y-player.y,2))>1.5){
+				Janelas[baus[i].index].style.display='none'
+			}
+		}
+	}
+	
 }
 function collideMap(x,y,size){
 	for(var i=0;i<Mapa.length;i++){
@@ -968,8 +999,11 @@ function buffaPlayer(){
 					default:
 						inventario_size=3
 				}
-				reloadInventario()
 			}
+			else{
+				inventario_size=3
+			}
+			reloadInventario()
 			for(var j=0;j<armaduras[i].buffs.length;j++){
 				player.buffs[j]+=armaduras[i].buffs[j]
 			}
@@ -1190,10 +1224,19 @@ function delay(func,time,show=true,stop=true){
 		stop:stop
 	})
 }
-
+function crescerPlanta(planta){
+	plantas[planta].colher=true
+	console.log(plantas[planta])
+}
 function devTP(obj){
 	player.x=obj.x
 	player.y=obj.y
+}
+function devCoord(){
+	if(showCoords){
+		showCoords=false
+	}
+	else{showCoords=true}
 }
 
 
@@ -1230,6 +1273,7 @@ setInterval(()=>{
 			delayTime.splice(i,1)
 		}
 	}
+	if(showCoords){c.fillStyle="#000";c.fillText('x:'+Math.floor(player.x)+'\ny:'+Math.floor(player.y),20,h-20)}
 	if(isInfo){
 		c.fillStyle="rgba(55,55,55,0.3)"
 		c.fillRect(w/4-2,2,w/4*2,72)

@@ -91,7 +91,9 @@ var Itens_Lista={
 	'balde de madeira':new Item('balde de madeira',0,0,[0,0,0,0,0,0,0],.8,'https://img.freepik.com/vetores-gratis/balde-rustico-de-madeira-isolado-no-branco_528282-23.jpg?w=740&t=st=1686572735~exp=1686573335~hmac=6c60b14ff65e4078091e20a9ecb71bc4d82f3c19c1a31ac6199de4b8c55ea24e'),
 	'mesa':new Block('mesa',0,0,1,true,pegaItemDuro,'https://img.freepik.com/free-photo/wood-material-background-wallpaper-texture-concept_53876-42925.jpg?size=626&ext=jpg&ga=GA1.2.1846467481.1686572738&semt=ais'),
 	'bau':new Block('bau',0,0,1,true,pegaBau,'https://png.pngtree.com/png-clipart/20230423/ourmid/pngtree-wooden-bucket-like-container-top-view-transparent-png-image_6719664.png'),
-	'fornalha':new Block('fornalha',0,0,1,true,pegaItemDuro,'https://img1.gratispng.com/20180408/iwq/kisspng-boiler-furnace-compensatore-idraulico-steam-engine-steampunk-gear-5aca1517a35961.8170900515231931116691.jpg')
+	'forja':new Block('forja',0,0,1,true,pegaItemDuro,'https://img1.gratispng.com/20180408/iwq/kisspng-boiler-furnace-compensatore-idraulico-steam-engine-steampunk-gear-5aca1517a35961.8170900515231931116691.jpg'),
+	'base de bigorna':new Block('base de bigorna',0,0,1,true,null,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUre76v5gUumLIGBTyW0GSAwuq-Xu5bdt2VD1GXqWWFTm4yIKhfteuiBe1MuY&s'),
+	'bigorna':new Block('bigorna',0,0,1,true,usaBigorna,'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSnz5_UCF3FpaI-w9PoZaT-GhDalMYllEXww&usqp=CAU')
 }
 
 const Craft_Lista={
@@ -166,6 +168,19 @@ const Craft_Lista_Mapa={
 	},
 	'parede de madeira':{
 		'ferro':'mesa'
+	},
+	'fogo':{
+		'pedra longa':'forja'
+	},
+	'chao de pedra':{
+		'ferro':'base de bigorna'
+	},
+	'base de bigorna':{
+		'ferro':'bigorna'
+	},
+	'balde de madeira':{
+		'semente de planta-folha':'planta-folha',
+		'semente de trepadeira':'trepadeira'
 	}
 }
 
@@ -245,8 +260,21 @@ function pegaPedra(){
 function pegaPlanta(){
 	for(var i=0;i<plantas.length;i++){
 		if(plantas[i].obj==this){
-			addInventario(clone(Itens_Lista[plantas[i].tipo]))
-			addXp(0.5,'Praticar Agricultura')
+			if(arma!='' && arma.nome.split(" ")[0]=='adaga'){
+				addInventario(clone(Itens_Lista['semente de '+plantas[i].tipo]))
+				addXp(0.5,'Praticar Agricultura')
+				destroy(this)
+			}
+			else if(plantas[i].colher){
+				addInventario(clone(Itens_Lista[plantas[i].tipo]))
+				plantas[i].colher=false
+				plantas[i].crescer()
+				addXp(0.5,'Praticar Agricultura')
+			}
+			else{
+				alerta('A Planta Não esta prota para colheita','rgba(255,0,0')
+			}
+			
 		}
 	}
 }
@@ -271,17 +299,18 @@ function pegaBau(){
 						temp.x=this.x
 						temp.y=this.y
 
-						Mapa.splice(this.x+this.y*tamanhoX+1,0,temp)
-						console.log(this.x+this.y*tamanhoX+1)
+						Mapa.push(temp)
 					}
+					baus[i].itens=[]
 				}
 			}
 			destroy(this)
+			removeBau(this)
 		}
 	}
 	else{
 		for(var i=0;i<baus.length;i++){
-			if(baus[i].obj==this){
+			if(baus[i].obj==this && Math.sqrt(Math.pow(baus[i].obj.x-player.x,2)+Math.pow(baus[i].obj.y-player.y,2))<1.5){
 				if(Janelas[baus[i].index].style.display=="inline-block"){
 					Janelas[baus[i].index].style.display="none"
 				}
@@ -290,6 +319,19 @@ function pegaBau(){
 			}
 		}
 	}
+}
+function usaBigorna(){
+	for(var i=0;i<Mapa.length;i++){
+		if(Math.sqrt(Math.pow(Mapa[i].x-this.x,2)+Math.pow(Mapa[i].y-this.y,2))<2 && Mapa[i].nome.split(" ")[0]=='balde'){
+			for(var j=0;j<Mapa.length;j++){
+				if(Math.sqrt(Math.pow(Mapa[j].x-this.x,2)+Math.pow(Mapa[j].y-this.y,2))<2 && Mapa[j].nome=='forja'){
+					return true
+				}
+			}
+		}
+	}
+	alerta('Ferraria Incompleta','rgba(255,0,0')
+	return false
 }
 function construir(index){
 	if(arma!='' && Construir_Lista[arma.nome]!=undefined){

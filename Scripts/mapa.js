@@ -48,7 +48,11 @@ function createMap(){
 				Mapa.push(new Block('Planta',j,i,1,false,pegaPlanta,'planta.png'))
 				plantas.push(
 					{obj:Mapa[Mapa.length-1],
-					tipo:Math.random()<.5 ? 'trepadeira' : 'planta-folha'}
+					tipo:Math.random()<.5 ? 'trepadeira' : 'planta-folha',
+					colher:true,
+				crescer:function(){
+					delay(()=>{this.colher=true},10000,false,false)
+				}}
 				)
 			}
 			else if(j>=1 && i>=1 &&
